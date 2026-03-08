@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+    
 <head>
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,6 +15,10 @@
 <body>
 
 <h1>My Dashboard</h1>
+
+<button onclick="enablePush()">
+Enable Push Notifications
+</button>
 
 <div class="card" onclick="openPage('breathing.html')">
 <h2>Breathing Exercise</h2>
@@ -33,4 +38,29 @@
 <script src="app.js"></script>
 
 </body>
+
+<script type="module">
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-analytics.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
+
+  // Your web app's Firebase configuration
+  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+  const firebaseConfig = {
+    apiKey: "AIzaSyBPU1xKA7fLdhGEupvh46rCakXapzTK_v8",
+    authDomain: "dashboard-app-75a16.firebaseapp.com",
+    projectId: "dashboard-app-75a16",
+    storageBucket: "dashboard-app-75a16.firebasestorage.app",
+    messagingSenderId: "642516972164",
+    appId: "1:642516972164:web:b12e0cb676cb0cc8ab08d1",
+    measurementId: "G-VM322M45TG"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+</script>
+
 </html>
