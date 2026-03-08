@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Breathing</title>
+
+<link rel="stylesheet" href="style.css">
+
+<style>
+
+#circle{
+width:150px;
+height:150px;
+border-radius:50%;
+background:#38bdf8;
+margin:40px auto;
+transition:all 4s ease;
+}
+
+.big{
+transform:scale(1.6);
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>Breathing Exercise</h1>
+
+<select id="preset">
+
+<option value="4">Calm (4 sec)</option>
+<option value="5">Focus (5 sec)</option>
+<option value="6">Energize (6 sec)</option>
+
+</select>
+
+<br><br>
+
+<button onclick="startBreathing()">Start</button>
+
+<div id="circle"></div>
+
+<p id="text">Ready</p>
+
+<script>
+
+let circle = document.getElementById("circle")
+let text = document.getElementById("text")
+
+function startBreathing(){
+
+let time = document.getElementById("preset").value
+
+text.innerText = "Inhale"
+
+circle.classList.add("big")
+
+setTimeout(()=>{
+
+text.innerText="Exhale"
+
+circle.classList.remove("big")
+
+},time*1000)
+
+}
+
+</script>
+
+</body>
+
+</html>

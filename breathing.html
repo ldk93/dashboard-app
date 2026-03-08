@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Breathing App v5</title>
+<style>
+body{font-family:Arial;text-align:center;background:#0f172a;color:white;margin-top:40px}
+#circle{width:100px;height:100px;border-radius:50%;background:#38bdf8;margin:20px auto;transition:all 0.5s linear}
+button, select{padding:12px 24px;font-size:18px;margin:6px;border-radius:8px;border:none;cursor:pointer}
+#phase{font-size:28px;margin-top:12px}
+#timer{font-size:48px;margin:12px}
+.panel{margin:20px auto;width:90%;text-align:left;max-width:400px;display:none}
+.panel div{background:#1e293b;padding:8px;margin:4px 0;border-radius:6px;font-size:16px}
+#panelButtons{margin:12px}
+</style>
+</head>
+<body>
+
+<h1>Breathing App</h1>
+
+<label for="preset">Choose a breathing method:</label>
+<select id="preset">
+  <option value="box">Box Breathing (4-4-4-4)</option>
+  <option value="478">4-7-8 (4-7-8)</option>
+  <option value="wimhof">Wim Hof (30 quick breaths)</option>
+</select>
+
+<div id="phase">Ready</div>
+<div id="circle"></div>
+<div id="timer">0</div>
+<h2>Cycles: <span id="cycles">0</span></h2>
+
+<button onclick="start()">Start</button>
+<button onclick="pause()">Pause</button>
+<button onclick="reset()">Reset</button>
+
+<div id="panelButtons">
+  <button onclick="togglePanel('summary')">Show Summary</button>
+  <button onclick="togglePanel('history')">Show History</button>
+</div>
+
+<div id="summary" class="panel"><h3>Session Summary</h3></div>
+<div id="history" class="panel"><h3>History</h3></div>
+
+<script>
+// Breathing presets
+const presets = {
+  box: [
+    {name:"Inhale",duration:4},
+    {name:"Hold",duration:4},
+    {name:"Exhale",duration:4},
+    {name:"Hold",duration:4}
+  ],
+  "478": [
+    {name:"Inhale",duration:4},
+    {name:"Hold",duration:7},
+    {name:"Exhale",duration:8}
+  ],
+  wimhof: [
+    {name:"Inhale",duration:1},
+    {name:"Exhale",duration:1}
+  ]
+};
+
+let pattern = presets.box;
+let phaseIndex = 0;
+let timeLeft = pattern[0].duration;
+let cycles = 0;
+let timer = null;
+let history = JSON.parse(localStorage.getItem("history")||"[]");
+let sessionStartTime = null;
+
+// Update UI with resized circle
+function updateUI(){
+  document.getElementById("phase").innerText = pattern[phaseIndex].name;
+  document.getElementById("timer").innerText = timeLeft;
+  document.getElementById("cycles").innerText = cycles;
+  
+  const c = document.getElementById("circle");
+  const phase = pattern[phaseIndex].name;
+
+  // Resize circle based on phase
+  if(phase === "Inhale") c.style.transform = "scale(1.5)";   // big (~150px)
+  else if(phase === "Hold") c.style.transform = "scale(1.2)"; // medium (~120px)
+  else if(phase === "Exhale") c.style.transform = "scale(1)"; // small (100px)
+}
+
+// Tick
+function tick(){
+  if(timeLeft > 1) timeLeft--;
+  else{
+    phaseIndex++;
+    if(phaseIndex >= pattern.length){
+      phaseIndex=0;
+      cycles++;
+      if(document.getElementById("preset").value==="wimhof" && cycles>=30){
+        pause();
+        alert("Wim Hof session complete!");
+      }
+    }
+    timeLeft = pattern[phaseIndex].duration;
+  }
+  updateUI();
+}
+
+// Start, Pause, Reset
+function start(){
+  if(timer) return;
+  if(!sessionStartTime) sessionStartTime = new Date();
+  updateUI();
+  timer = setInterval(tick,1000);
+}
+
+function pause(){
+  clearInterval(timer);
+  timer = null;
+}
+
+function reset(){
+  pause();
+  if(cycles>0){
+    const endTime = new Date();
+    const elapsedSec = Math.floor((endTime - sessionStartTime)/1000);
+    const lastSession = {
+      preset: document.getElementById("preset").value,
+      cycles: cycles,
+      time: elapsedSec,
+      timestamp: endTime.toLocaleTimeString()
+    };
+    history.push(lastSession);
+    localStorage.setItem("history",JSON.stringify(history));
+    sessionStartTime=null;
+  }
+
+  phaseIndex=0;
+  cycles=0;
+  timeLeft=pattern[0].duration;
+  updateUI();
+  updateHistory();
+  updateSummary();
+}
+
+// Handle preset change
+document.getElementById("preset").addEventListener("change",function(){
+  pattern = presets[this.value];
+  reset();
+});
+
+// Update History
+function updateHistory(){
+  const histDiv = document.getElementById("history");
+  histDiv.innerHTML="<h3>History</h3>";
+  history.slice().reverse().forEach(s=>{
+    const d = document.createElement("div");
+    d.innerText=`[${s.timestamp}] ${s.preset} - ${s.cycles} cycles (${formatTime(s.time)})`;
+    histDiv.appendChild(d);
+  });
+}
+
+// Update Summary
+function updateSummary(){
+  const sumDiv = document.getElementById("summary");
+  if(history.length===0){
+    sumDiv.innerHTML="<h3>Session Summary</h3><div>No sessions yet</div>";
+    return;
+  }
+  const last = history[history.length-1];
+  sumDiv.innerHTML=`<h3>Session Summary</h3>
+  <div>Last Preset: ${last.preset}</div>
+  <div>Cycles: ${last.cycles}</div>
+  <div>Duration: ${formatTime(last.time)}</div>`;
+}
+
+// Format seconds
+function formatTime(sec){
+  const m=Math.floor(sec/60).toString().padStart(2,"0");
+  const s=(sec%60).toString().padStart(2,"0");
+  return `${m}:${s}`;
+}
+
+// Toggle panels
+function togglePanel(panel){
+  const el = document.getElementById(panel);
+  el.style.display = (el.style.display==="none")?"block":"none";
+}
+
+updateUI();
+updateHistory();
+updateSummary();
+</script>
+
+</body>
+</html>
